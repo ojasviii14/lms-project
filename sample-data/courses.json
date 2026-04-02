@@ -1,0 +1,9 @@
+[
+  {
+    "course_id": "course1",
+    "title": "Safety Training",
+    "description": "Basic workplace safety",
+    "passing_score": 70,
+    "assigned_roles": ["engineer"]
+  }
+]
