@@ -6,13 +6,14 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 dynamodb = boto3.resource('dynamodb')
 s3_client = boto3.client('s3')
-ses_client = boto3.client('ses')
-completions_table = dynamodb.Table('completions')
-certificates_table = dynamodb.Table('certificates')
-employees_table = dynamodb.Table('employees')
-courses_table = dynamodb.Table('courses')
-BUCKET_NAME = 'lms-certificates-bucket'
-SES_SENDER = 'admin@example.com'
+import os
+ses_client = boto3.client('ses', region_name=os.environ['ap-south-1'])
+completions_table = dynamodb.Table(os.environ['COMPLETIONS_TABLE'])
+certificates_table = dynamodb.Table(os.environ['CERTIFICATES_TABLE'])
+employees_table = dynamodb.Table(os.environ['EMPLOYEES_TABLE'])
+courses_table = dynamodb.Table(os.environ['COURSES_TABLE'])
+BUCKET_NAME = os.environ['CERTIFICATE_BUCKET']
+SES_SENDER = os.environ['SES_SENDER_EMAIL']
 def get_employee(employee_id):
     response = employees_table.get_item(Key={'employee_id': employee_id})
     return response.get('Item')
