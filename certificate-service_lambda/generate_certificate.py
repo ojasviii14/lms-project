@@ -9,7 +9,7 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 dynamodb = boto3.resource('dynamodb')
 s3_client = boto3.client('s3')
-ses_client = boto3.client('ses', region_name=os.environ['AWS_REGION_NAME'])
+ses_client = boto3.client('ses', region_name=os.environ.get('AWS_REGION', 'ap-south-1'))
 completions_table = dynamodb.Table(os.environ['completions'])
 certificates_table = dynamodb.Table(os.environ['certifications'])
 employees_table = dynamodb.Table(os.environ['employees'])
