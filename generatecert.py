@@ -37,6 +37,12 @@ def lambda_handler(event, context):
         body = json.loads(event.get('body', '{}'))
         employee_id = body.get('employee_id')
         course_id = body.get('course_id')
+        if not employee_id or not course_id:
+            return {
+                'statusCode': 400,
+                'headers': {'Access-Control-Allow-Origin': '*'},
+             'body': json.dumps({'message': 'employee_id and course_id are required'})
+            }
         employee = get_employee(employee_id)
         course = get_course(course_id)
         cert_id = str(uuid.uuid4())
