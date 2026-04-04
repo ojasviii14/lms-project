@@ -1,141 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LMS Dashboard</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI';
-            display: flex;
-            background: #f4f6fb;
-        }
-
-        .sidebar {
-            width: 220px;
-            background: #111827;
-            color: white;
-            height: 100vh;
-            padding: 20px;
-        }
-
-        .sidebar h2 {
-            margin-bottom: 30px;
-        }
-
-        .sidebar div {
-            margin: 15px 0;
-            cursor: pointer;
-        }
-
-        .main {
-            flex: 1;
-            padding: 20px;
-        }
-
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        input, select {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-        }
-
-        button {
-            padding: 10px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <div class="sidebar">
-    <h2>LMS</h2>
-    <div onclick="show('courses')">Courses</div>
-    <div onclick="show('assign')">Assign</div>
+    <h2>🎓 LMS</h2>
+    <div onclick="show('courses')">📚 Courses</div>
+    <div onclick="show('create')">➕ Create Course</div>
+    <div onclick="show('assign')">📋 Assign Course</div>
 </div>
-
 <div class="main">
-
     <!-- COURSES -->
     <div id="courses" class="card">
-        <h2>Courses</h2>
+        <h2>All Courses</h2>
         <button onclick="getCourses()">Load Courses</button>
         <ul id="courseList"></ul>
     </div>
-
+    <!-- CREATE COURSE -->
+    <div id="create" class="card" style="display:none;">
+        <h2>Create Course</h2>
+        <input id="title" placeholder="Course Title" />
+        <input id="description" placeholder="Description" />
+        <input id="video_url" placeholder="Video URL (YouTube/Vimeo)" />
+        <input id="passing_score" placeholder="Passing Score (e.g. 70)" type="number" />
+        <input id="assigned_roles" placeholder="Assigned Roles (e.g. developer, hr)" />
+        <button onclick="createCourse()">Create Course</button>
+        <p id="createMsg" class="msg"></p>
+    </div>
     <!-- ASSIGN -->
     <div id="assign" class="card" style="display:none;">
         <h2>Assign Course</h2>
+        <button onclick="loadCoursesForAssign()">Load Courses</button>
         <select id="courseDropdown"></select>
-        <select id="employeeDropdown">
-            <option value="emp1">Rahul</option>
-            <option value="emp2">Priya</option>
-        </select>
+        <input id="employee_id" placeholder="Employee ID" />
         <button onclick="assign()">Assign</button>
+        <p id="assignMsg" class="msg"></p>
     </div>
-
 </div>
-
-<script>
-const BASE_URL = "https://s4izcrinai.execute-api.ap-south-1.amazonaws.com";
-
-let courses = [];
-
-function show(section) {
-    document.getElementById("courses").style.display = "none";
-    document.getElementById("assign").style.display = "none";
-    document.getElementById(section).style.display = "block";
-}
-
-async function getCourses() {
-    const res = await fetch(BASE_URL + "/courses");
-    const result = await res.json();
-
-    courses = result.courses;   // ✅ FIXED HERE
-
-    const list = document.getElementById("courseList");
-    const dropdown = document.getElementById("courseDropdown");
-
-    list.innerHTML = "";
-    dropdown.innerHTML = "";
-
-    courses.forEach(c => {
-        list.innerHTML += `<li>${c.title} (${c.course_id})</li>`;
-        dropdown.innerHTML += `<option value="${c.course_id}">${c.title}</option>`;
-    });
-}
-
-async function assign() {
-    const data = {
-        course_id: document.getElementById("courseDropdown").value,
-        employee_id: document.getElementById("employeeDropdown").value
-    };
-
-    const res = await fetch(BASE_URL + "/assign-course-individual", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(data)
-    });
-
-    const result = await res.json();
-    alert(result.message);
-}
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
