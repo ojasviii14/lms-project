@@ -1,31 +1,21 @@
 import json
 import boto3
 import uuid
+import os
 from datetime import datetime
-
 dynamodb = boto3.resource('dynamodb')
-
-employees_table = dynamodb.Table('employees')
-assignments_table = dynamodb.Table('assignments')
-
-
+employees_table = dynamodb.Table(os.environ['EMPLOYEES_TABLE'])
+assignments_table = dynamodb.Table(os.environ['ASSIGNMENTS_TABLE'])
 def lambda_handler(event, context):
     try:
-        print("EVENT:", event)  # 👈 DEBUG
-
+        print("EVENT:", event)
         body = json.loads(event['body'])
-        print("BODY:", body)  # 👈 DEBUG
-
+        print("BODY:", body)
         course_id = body['course_id']
         role = body['role']
-
         response = employees_table.scan()
         employees = response.get('Items', [])
-        print("EMPLOYEES:", employees)  # 👈 DEBUG
-
         filtered_employees = [emp for emp in employees if emp.get('role') == role]
-        print("FILTERED:", filtered_employees)  # 👈 DEBUG
-
         for emp in filtered_employees:
             assignments_table.put_item(
                 Item={
@@ -36,15 +26,19 @@ def lambda_handler(event, context):
                     'status': 'not_started'
                 }
             )
-
         return {
             'statusCode': 200,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': '*',
+                'Access-Control-Allow-Methods': '*'
+            },
             'body': json.dumps({'message': 'Course assigned successfully'})
         }
-
     except Exception as e:
-        print("ERROR:", str(e))  # 👈 DEBUG
+        print("ERROR:", str(e))
         return {
             'statusCode': 500,
+            'headers': {'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({'error': str(e)})
         }

@@ -10,10 +10,10 @@ from io import BytesIO
 dynamodb = boto3.resource('dynamodb')
 s3_client = boto3.client('s3')
 ses_client = boto3.client('ses', region_name=os.environ['AWS_REGION_NAME'])
-completions_table = dynamodb.Table(os.environ['COMPLETIONS_TABLE'])
-certificates_table = dynamodb.Table(os.environ['CERTIFICATES_TABLE'])
-employees_table = dynamodb.Table(os.environ['EMPLOYEES_TABLE'])
-courses_table = dynamodb.Table(os.environ['COURSES_TABLE'])
+completions_table = dynamodb.Table(os.environ['completions'])
+certificates_table = dynamodb.Table(os.environ['certifications'])
+employees_table = dynamodb.Table(os.environ['employees'])
+courses_table = dynamodb.Table(os.environ['courses'])
 BUCKET_NAME = os.environ['CERTIFICATE_BUCKET']
 SES_SENDER = os.environ['SES_SENDER_EMAIL']
 def get_employee(employee_id):
