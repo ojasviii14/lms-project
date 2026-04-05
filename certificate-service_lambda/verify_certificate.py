@@ -17,7 +17,6 @@ def lambda_handler(event, context):
             }
         response = certificates_table.get_item(Key={'cert_id': cert_id})
         cert = response.get('Item')
-
         if not cert:
             return {
                 'statusCode': 404,
