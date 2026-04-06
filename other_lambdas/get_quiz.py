@@ -45,7 +45,7 @@ def lambda_handler(event, context):
         for q in items:
             safe_questions.append({
                 'question_id': q.get('question_id'),
-                'question': q.get('question'),
+                'question': q.get('question_text'),  # ✅ FIXED HERE
                 'options': q.get('options', [])
             })
 
