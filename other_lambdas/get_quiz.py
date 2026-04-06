@@ -14,38 +14,40 @@ CORS = {
 
 def lambda_handler(event, context):
     try:
+        # Get course_id (optional now)
         course_id = (
             event.get('pathParameters', {}).get('course_id') or
             event.get('queryStringParameters', {}).get('course_id')
         )
 
-        if not course_id:
-            return {
-                'statusCode': 400,
-                'headers': CORS,
-                'body': json.dumps({'message': 'course_id is required'})
-            }
-
-        course_id = str(course_id)
-
-        response = questions_table.scan(
-            FilterExpression=Attr('course_id').eq(course_id)
-        )
-
+        response = questions_table.scan()
         items = response.get('Items', [])
 
         while 'LastEvaluatedKey' in response:
             response = questions_table.scan(
-                FilterExpression=Attr('course_id').eq(course_id),
                 ExclusiveStartKey=response['LastEvaluatedKey']
             )
             items.extend(response.get('Items', []))
 
         safe_questions = []
+
         for q in items:
+
+            # ✅ Handle both question formats
+            question_text = q.get('question_text') or q.get('question')
+
+            # ❌ Skip if question is missing
+            if not question_text:
+                continue
+
+            # ✅ Filter by course_id if provided
+            if course_id and str(q.get('course_id')) != str(course_id):
+                continue
+
             safe_questions.append({
                 'question_id': q.get('question_id'),
-                'question': q.get('question_text'),  # ✅ FIXED HERE
+                'course_id': q.get('course_id'),
+                'question': question_text,
                 'options': q.get('options', [])
             })
 
