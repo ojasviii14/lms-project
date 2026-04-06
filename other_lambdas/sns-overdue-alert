@@ -1,0 +1,51 @@
+import boto3
+import os
+from datetime import datetime
+
+dynamodb = boto3.resource('dynamodb')
+sns = boto3.client('sns')
+
+assignments_table = dynamodb.Table(os.environ['ASSIGNMENTS_TABLE'])
+
+TOPIC_ARN = os.environ['SNS_TOPIC_ARN']
+
+def lambda_handler(event, context):
+    try:
+        now = datetime.utcnow()
+        overdue_list = []
+
+        response = assignments_table.scan()
+
+        for item in response.get('Items', []):
+            if item.get('status') != 'passed':
+                due_date = item.get('due_date')
+
+                if due_date:
+                    due = datetime.fromisoformat(due_date)
+
+                    if due < now:
+                        overdue_list.append(
+                            f"Employee: {item['employee_id']} | Course: {item['course_id']}"
+                        )
+
+        if not overdue_list:
+            message = "No overdue assignments this week ✅"
+        else:
+            message = "Overdue Assignments:\n\n" + "\n".join(overdue_list)
+
+        sns.publish(
+            TopicArn=TOPIC_ARN,
+            Subject="Weekly LMS Report",
+            Message=message
+        )
+
+        return {
+            'statusCode': 200,
+            'body': message
+        }
+
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': str(e)
+        }
