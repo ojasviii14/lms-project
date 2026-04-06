@@ -5,43 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>F13 LMS Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .hidden { display: none !important; }
+        .role-select { width: 100%; padding: 8px; margin-bottom: 20px; background: #1f2937; color: white; border: 1px solid #374151; border-radius: 6px; outline: none; }
+    </style>
 </head>
 <body>
 <div class="sidebar">
     <h2>🎓 F13 LMS</h2>
-    <div onclick="show('courses')">📚 Courses</div>
-    <div onclick="show('create')">➕ Create Course</div>
-    <div onclick="show('assign')">📋 Assign Course</div>
-    <div onclick="show('quiz')">📝 Take Quiz</div>
-    <div onclick="show('certificate')">🏆 Get Certificate</div>
+    <select id="roleDropdown" class="role-select">
+        <option value="employee">👨‍💻 View as Employee</option>
+        <option value="hr">👑 View as HR Admin</option>
+    </select>
+    <div class="employee-view" onclick="show('courses')">📚 Available Courses</div>
+    <div class="employee-view" onclick="show('quiz')">📝 Take Quiz</div>
+    <div class="employee-view" onclick="show('my-certs')">🏆 My Certificates</div> <div class="hr-view hidden" onclick="show('create')">➕ Create Course</div>
+    <div class="hr-view hidden" onclick="show('assign')">📋 Assign Course</div>
+    <div class="hr-view hidden" onclick="show('hr-generate-certs')">📜 Generate Certs</div> <div class="hr-view hidden" onclick="show('dashboard')">📊 Skill Gap Dashboard</div>
+
     <div onclick="show('verify')">✅ Verify Certificate</div>
-    <div onclick="show('dashboard')">📊 Skill Gap Dashboard</div>
 </div>
 <div class="main">
-    <div id="courses" class="card section active">
-        <h2>📚 All Courses</h2>
+    <div id="courses" class="card section active employee-view">
+        <h2>📚 Available Courses</h2>
         <button onclick="getCourses()">Load Courses</button>
         <ul id="courseList"></ul>
     </div>
-    <div id="create" class="card section">
-        <h2>➕ Create Course</h2>
-        <input id="title" placeholder="Course Title" />
-        <input id="description" placeholder="Description" />
-        <input id="video_url" placeholder="Video URL (YouTube/Vimeo)" />
-        <input id="passing_score" placeholder="Passing Score (e.g. 70)" type="number" />
-        <input id="assigned_roles" placeholder="Assigned Roles (comma separated e.g. engineer, hr)" />
-        <button onclick="createCourse()">Create Course</button>
-        <p id="createMsg" class="msg"></p>
-    </div>
-    <div id="assign" class="card section">
-        <h2>📋 Assign Course</h2>
-        <button onclick="loadCoursesForAssign()">Load Courses</button>
-        <select id="courseDropdown"></select>
-        <input id="employee_id" placeholder="Employee ID (e.g. emp1)" />
-        <button onclick="assign()">Assign</button>
-        <p id="assignMsg" class="msg"></p>
-    </div>
-    <div id="quiz" class="card section">
+    <div id="quiz" class="card section employee-view hidden">
         <h2>📝 Take Quiz</h2>
         <input id="quizCourseId" placeholder="Course ID (e.g. course1)" />
         <input id="quizEmployeeId" placeholder="Employee ID (e.g. emp1)" />
@@ -50,26 +40,71 @@
         <button id="submitQuizBtn" onclick="submitQuiz()" style="display:none;">Submit Quiz</button>
         <p id="quizMsg" class="msg"></p>
     </div>
-    <div id="certificate" class="card section">
-        <h2>🏆 Generate Certificate</h2>
+    <div id="my-certs" class="card section employee-view hidden">
+        <h2>🏆 My Certificates</h2>
+        <p style="margin-bottom: 15px; color: #4b5563;">Enter your Employee ID to view your earned certificate IDs.</p>
+        <input id="viewCertEmpId" placeholder="Employee ID (e.g. emp1)" />
+        <button onclick="loadMyCerts()">View My Certificates</button>
+        <div id="myCertsList" style="margin-top: 15px;"></div>
+    </div>
+
+    <div id="hr-generate-certs" class="card section hr-view hidden">
+        <h2>📜 Generate Certificate</h2>
+        <p style="margin-bottom: 15px; color: #4b5563;">Manually issue a certificate for an employee who has passed their quiz.</p>
         <input id="certEmployeeId" placeholder="Employee ID (e.g. emp1)" />
         <input id="certCourseId" placeholder="Course ID (e.g. course1)" />
-        <button onclick="generateCert()">Generate Certificate</button>
+        <button onclick="generateCert()">Generate & Email Certificate</button>
         <p id="certMsg" class="msg"></p>
         <a id="certLink" href="#" target="_blank" style="display:none;">
-            <button>Download Certificate</button>
+        <button>View Generated PDF</button>
         </a>
+    </div>
+    <div id="create" class="card section hr-view hidden">
+        <h2>➕ Create Course</h2>
+        <input id="title" placeholder="Course Title" />
+        <input id="description" placeholder="Description" />
+        <input id="video_url" placeholder="Video URL (YouTube/Vimeo)" />
+        <input id="passing_score" placeholder="Passing Score (e.g. 70)" type="number" />
+        <input id="assigned_roles" placeholder="Assigned Roles (comma separated e.g. engineer, manager)" />
+        <button onclick="createCourse()">Create Course</button>
+        <p id="createMsg" class="msg"></p>
+    </div>
+    <div id="assign" class="card section hr-view hidden">
+        <h2>📋 Assign Course</h2>
+        <button onclick="loadCoursesForAssign()">Load Courses</button>
+        <select id="courseDropdown"></select>
+        <div style="display: flex; gap: 20px; margin-top: 15px;">
+            <div style="flex: 1; padding: 15px; background: #f9fafb; border-radius: 8px;">
+                <h3 style="font-size: 14px; margin-bottom: 10px; color: #1f2937;">👤 Assign to Individual</h3>
+                <input id="employee_id" placeholder="Employee ID (e.g. emp1)" />
+                <button onclick="assign()">Assign to Employee</button>
+            </div>
+            <div style="flex: 1; padding: 15px; background: #f9fafb; border-radius: 8px;">
+                <h3 style="font-size: 14px; margin-bottom: 10px; color: #1f2937;">👥 Assign by Role</h3>
+                <select id="target_role">
+                    <option value="">Select a Role...</option>
+                    <option value="engineer">Engineer</option>
+                    <option value="manager">Manager</option>
+                    <option value="designer">Designer</option>
+                    <option value="analyst">Analyst</option>
+                    <option value="recruiter">Recruiter</option>
+                </select>
+                <button onclick="assignRole()">Assign to Role</button>
+            </div>
+        </div>
+        <p id="assignMsg" class="msg" style="margin-top: 15px;"></p>
+    </div>
+
+    <div id="dashboard" class="card section hr-view hidden">
+        <h2>📊 Skill Gap Dashboard</h2>
+        <button onclick="loadDashboard()">Load Dashboard</button>
+        <div id="dashboardContent"></div>
     </div>
     <div id="verify" class="card section">
         <h2>✅ Verify Certificate</h2>
         <input id="certId" placeholder="Certificate ID" />
         <button onclick="verifyCert()">Verify</button>
         <div id="verifyResult" style="margin-top:15px;"></div>
-    </div>
-    <div id="dashboard" class="card section">
-        <h2>📊 Skill Gap Dashboard</h2>
-        <button onclick="loadDashboard()">Load Dashboard</button>
-        <div id="dashboardContent"></div>
     </div>
 </div>
 <script src="app.js"></script>

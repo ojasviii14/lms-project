@@ -41,11 +41,15 @@ def lambda_handler(event, context):
             return {'statusCode': 404, 'headers': CORS, 'body': json.dumps({'message': 'No questions found for this course'})}
         correct = 0
         for q in questions:
-            question_id = q['question_id']
-            submitted = answers.get(question_id, '')
-            hashed_submitted = hash_answer(submitted)
-            if hashed_submitted == q['correct_answer']:
-                correct += 1
+            question_id = str(q['question_id'])
+            submitted = str(answers.get(question_id, '')).strip().lower()
+            db_answer = str(q.get('correct_answer', '')).strip().lower()
+            if len(db_answer) == 64:
+                if hash_answer(submitted) == db_answer:
+                    correct += 1
+            else:
+                if submitted == db_answer:
+                    correct += 1
         total = len(questions)
         score = int((correct / total) * 100)
         course = courses_table.get_item(Key={'course_id': course_id}).get('Item')

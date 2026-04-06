@@ -2,12 +2,13 @@ import json
 import boto3
 import os
 dynamodb = boto3.resource('dynamodb')
-certificates_table = dynamodb.Table(os.environ['CERTIFICATES_TABLE'])
 def lambda_handler(event, context):
     try:
         print("EVENT:", event)
-
-        cert_id = event.get('pathParameters', {}).get('cert_id')
+        table_name = os.environ.get('CERTIFICATES_TABLE', 'certificates')
+        certificates_table = dynamodb.Table(table_name)
+        path_params = event.get('pathParameters') or {}
+        cert_id = path_params.get('cert_id')
 
         if not cert_id:
             return {
@@ -38,10 +39,9 @@ def lambda_handler(event, context):
                 'message': 'Certificate is valid',
                 'certificate': {
                     'cert_id': cert['cert_id'],
-                    'employee_name': cert['employee_name'],
-                    'course_name': cert['course_name'],
-                    'completion_date': cert['completion_date'],
-                    'issued_at': cert['issued_at']
+                    'employee_name': cert.get('employee_name', 'Unknown'),
+                    'course_name': cert.get('course_name', 'Unknown'),
+                    'completion_date': cert.get('completion_date', 'Unknown')
                 }
             })
         }
@@ -50,5 +50,5 @@ def lambda_handler(event, context):
         return {
             'statusCode': 500,
             'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'message': f"Backend Error: {str(e)}"}) 
         }
